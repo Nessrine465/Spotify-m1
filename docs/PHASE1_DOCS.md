@@ -2,11 +2,11 @@
 
 ## Airflow UI
 
-![Airflow UI](screenshots\Airflow_UI.png)
+![Airflow UI](../screenshots/Airflow_UI.png)
 
 ## docker compose ps
 
-![docker services](screenshots/Docker_services.png)
+![docker services](../screenshots/Docker_services.png)
 
 ## Conclusion
 
@@ -30,7 +30,7 @@ Le schéma PostgreSQL et le modèle de données SPOTIFY ont été mis en place e
 
 ## Tests
 
-![Tests](screenshots/Tests_success.png)
+![Tests](../screenshots/Tests_success.png)
 
 ## Conclusion
 
@@ -41,11 +41,11 @@ Le Data Generator pour le catalogue musical utilisant Faker a été implémenté
 
 # DAGRun vert
 
-![DAGrun](screenshots\DAGrun_Airflow.png)
+![DAGrun](../screenshots/DAGrun_Airflow.png)
 
 # pytest passed
 
-![pytest](screenshots\pytest.png)
+![pytest](../screenshots/pytest.png)
 
 ## Conclusion
 
@@ -55,7 +55,7 @@ Le DAG catalog_ingestion_pipeline a été mis en place et est conforme aux crit�
 
 # Evenets JSON
 
-![events json](screenshots\events_json.png)
+![events json](../screenshots/events_json.png)
 
 ## Conclusion
 
@@ -65,16 +65,16 @@ le simulateur a été complété et lancé avec succès, conforme aux critères 
 
 # DAGrun
 
-![DAGrun](screenshots\DAGrun_streaming.png)
+![DAGrun](../screenshots/DAGrun_streaming.png)
 
 # MINIO Parquet
 
-![Minio parquet page 1](screenshots\minio_parquet_1.jpeg)
-![Minio parquet page 2](screenshots\minio_parquet_2.jpeg)
+![Minio parquet page 1](../screenshots/minio_parquet_1.jpeg)
+![Minio parquet page 2](../screenshots/minio_parquet_2.jpeg)
 
 # Count events
 
-![Count events](screenshots\events_postgres.jpeg)
+![Count events](../screenshots/events_postgres.jpeg)
 
 ## Conclusion
 
@@ -84,7 +84,7 @@ le DAG a été implémenté et exécuté correctement, conforme aux critères de
 
 # Daily streams
 
-![daily streams](screenshots\daily_streams.jpeg)
+![daily streams](../screenshots/daily_streams.jpeg)
 
 ## Conclusion
 
@@ -94,7 +94,7 @@ le pipeline d’agrégation ainsi que le stockage dans MinIO ont été mis en pl
 
 # Track IDs
 
-![Track IDs](screenshots\track_id.jpeg)
+![Track IDs](../screenshots/track_id.jpeg)
 
 ## Conclusion
 
@@ -104,7 +104,7 @@ le pipeline de recommandation a été développé et intégré avec succès, con
 
 # Statut transition
 
-![Statut transition](screenshots\statut_transition.jpeg)
+![Statut transition](../screenshots/statut_transition.jpeg)
 
 ## Conclusion
 
@@ -114,11 +114,11 @@ le DAG de reprocessing de la DLQ a été implémenté et fonctionne conformémen
 
 # Tests
 
-![Tests](screenshots\tests.png)
+![Tests](../screenshots/tests.png)
 
 # README
 
-[README](README.md)
+[README](../README.md)
 
 ## Conclusion
 

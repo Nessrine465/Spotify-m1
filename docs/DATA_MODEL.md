@@ -2,7 +2,7 @@
 
 ## Diagramme ERD
 
-![Le diagramme ERD](screenshots/erd_diagramme.png)
+![Le diagramme ERD](../screenshots/erd_diagramme.png)
 
 ---
 
