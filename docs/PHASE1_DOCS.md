@@ -30,7 +30,7 @@ Le schéma PostgreSQL et le modèle de données SPOTIFY ont été mis en place e
 
 ## Tests
 
-![Tests](../screenshots/Tests_success.png)
+![Tests](../screenshots/Tests_Success.png)
 
 ## Conclusion
 
