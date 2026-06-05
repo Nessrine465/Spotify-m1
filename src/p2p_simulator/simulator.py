@@ -377,7 +377,7 @@ class P2PSimulator:
             self.redis.publish(channel, payload)
 
             # Liste persistante pour Airflow
-            self.redis.lpush(channel + "_list", payload)
+            self.redis.lpush(channel, payload)
 
             logger.info(
                 f"Événement publié dans Redis | channel={channel}"
