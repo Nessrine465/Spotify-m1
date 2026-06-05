@@ -253,8 +253,6 @@ Les événements enrichis sont également écrits au format Parquet dans MinIO, 
 ## Conclusion
 
 Le job `streaming_enrichment_job.py` est opérationnel et conforme aux critères de validation de l'Issue #17.
-<<<<<<< HEAD
-=======
 
 # Validation Issue #18 - Fraud Detection Job
 
