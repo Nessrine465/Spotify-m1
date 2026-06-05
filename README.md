@@ -86,56 +86,55 @@ Cette phase introduit une architecture orientée streaming basée sur Kafka, Spa
 ### Architecture Phase 2
 P2P Simulator → Kafka → Spark Structured Streaming → PostgreSQL / MinIO
 
- Kafka Topics :
-- listening_events
-- p2p_network_events
-- enriched_events
-- fraud_alerts
-- late_listening_events
+   Kafka Topics :
+     - listening_events
+     - p2p_network_events
+     - enriched_events
+     - fraud_alerts
+     - late_listening_events
 
- Spark Jobs :
-- streaming_enrichment_job
-- fraud_detection_job
-- late_events_router
+    Spark Jobs :
+     - streaming_enrichment_job
+     - fraud_detection_job
+     - late_events_router
 
 PostgreSQL / MinIO → Airflow DAGs → Reconciliation & Late Events Processing
 ### Fonctionnalités implémentées
-Setup Kafka et Spark Structured Streaming
-Publication des événements dans Kafka
-Gestion des topics Kafka dédiés
-Exactly Once Processing
-Streaming Enrichment des événements
-Jointure avec le catalogue PostgreSQL
-Jointure avec les événements P2P
-Déduplication des événements
-Détection de fraude en temps réel
-Gestion des événements tardifs
-Routage des événements tardifs vers Kafka
-DAG reconciliation_pipeline
-DAG late_events_reprocessing_pipeline
+  - Setup Kafka et Spark Structured Streaming
+  - Publication des événements dans Kafka
+  - Gestion des topics Kafka dédiés
+  - Exactly Once Processing
+  - Streaming Enrichment des événements
+  - Jointure avec le catalogue PostgreSQL
+  - Jointure avec les événements P2P
+  - Déduplication des événements
+  - Détection de fraude en temps réel
+  - Gestion des événements tardifs
+  - Routage des événements tardifs vers Kafka
+  - DAG reconciliation_pipeline
+  - DAG late_events_reprocessing_pipeline
 ### Kafka Topics
-listening_events
-p2p_network_events
-enriched_events
-fraud_alerts
-late_listening_events
+  - listening_events
+  - p2p_network_events
+  - enriched_events
+  - fraud_alerts
+  - late_listening_events
 ### Jobs Spark Phase 2
-streaming_enrichment_job.py
-fraud_detection_job.py
-late_events_router.py
+  - streaming_enrichment_job.py
+  - fraud_detection_job.py
+  - late_events_router.py
 ### DAGs Phase 2
-reconciliation_pipeline
-late_events_reprocessing_pipeline
+  - reconciliation_pipeline
+  - late_events_reprocessing_pipeline
 
 ### Fonctionnalités temps réel
 #### Streaming Enrichment
 
 Les événements d'écoute sont enrichis en temps réel avec :
-
-Titre du morceau
-Artiste
-Genre
-Pays de l'artiste
+  - Titre du morceau
+  - Artiste
+  - Genre
+  - Pays de l'artiste
 
 Les événements P2P sont également corrélés avec les écoutes afin d'ajouter du contexte réseau aux analyses.
 
@@ -143,9 +142,9 @@ Les événements P2P sont également corrélés avec les écoutes afin d'ajouter
 
 Détection automatique des comportements suspects :
 
-Burst Listening
-Short Duration Bot
-P2P Failure Rate
+  - Burst Listening
+  - Short Duration Bot
+  - P2P Failure Rate
 
 Les alertes générées sont publiées dans Kafka et stockées dans PostgreSQL.
 
@@ -164,47 +163,45 @@ Recalcul des agrégats impactés
 
 #### Reconciliation Pipeline
 Comparaison entre :
-
-Batch Layer (daily_streams)
-Speed Layer (realtime_top_tracks)
+  - Batch Layer (daily_streams)
+  - Speed Layer (realtime_top_tracks)
 
 Le pipeline :
-
-Calcule le taux de divergence
-Génère un rapport de réconciliation
-Détecte les écarts supérieurs à 5 %
+  - Calcule le taux de divergence
+  - Génère un rapport de réconciliation
+  - Détecte les écarts supérieurs à 5 %
 
 ### Validation Phase 2
-Kafka opérationnel
-Spark Structured Streaming opérationnel
-Topics Kafka créés et alimentés
-Exactly Once Processing validé
-Enrichissement temps réel validé
-Détection de fraude validée
-Réconciliation Batch / Streaming validée
-Gestion des événements tardifs validée
-Réinjection des événements tardifs validée
-Recalcul des agrégats validé
+  - Kafka opérationnel
+  - Spark Structured Streaming opérationnel
+  - Topics Kafka créés et alimentés
+  - Exactly Once Processing validé
+  - Enrichissement temps réel validé
+  - Détection de fraude validée
+  - Réconciliation Batch / Streaming validée
+  - Gestion des événements tardifs validée
+  - Réinjection des événements tardifs validée
+  - Recalcul des agrégats validé
 
 ### Résultat global
 La plateforme couvre désormais :
 
 #### Batch Layer
-Ingestion catalogue
-Agrégations
-Recommandations
-DLQ
+  - Ingestion catalogue
+  - Agrégations
+  - Recommandations
+  - DLQ
 
 #### Speed Layer
-Kafka Streaming
-Spark Structured Streaming
-Enrichissement temps réel
-Détection de fraude
-Gestion des événements tardifs
+  - Kafka Streaming
+  - Spark Structured Streaming
+  - Enrichissement temps réel
+  - Détection de fraude
+  - Gestion des événements tardifs
 
 #### Serving Layer
-PostgreSQL
-Redis
-MinIO
+  - PostgreSQL
+  - Redis
+  - MinIO
 
 L’architecture Lambda est désormais opérationnelle avec traitement batch, streaming temps réel, détection de fraude, réconciliation des données et retraitement des événements tardifs.
