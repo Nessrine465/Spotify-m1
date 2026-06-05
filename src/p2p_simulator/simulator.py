@@ -27,7 +27,7 @@ from typing import Optional
 import redis
 
 # Phase 2 — décommenter quand Kafka est prêt
-# from confluent_kafka import Producer
+from confluent_kafka import Producer
 
 logging.basicConfig(
     level=logging.INFO,
@@ -48,10 +48,11 @@ POSTGRES_CONFIG = {
     "user": "spotify",
     "password": "spotify",
 }
-KAFKA_BOOTSTRAP = "kafka-1:9092"       # Phase 2
+KAFKA_BOOTSTRAP = "localhost:29092"      # Phase 2
 
 TOPICS = {
     "listening":   "listening_events",
+    "late_events": "late_listening_events",
     "p2p_network": "p2p_network_events",
 }
 
@@ -99,12 +100,20 @@ class P2PSimulator:
         self.mode = mode
         self.running = True
         self.event_count = 0
-
+        self.fraud_user = SAMPLE_USERS[0]
         # Connexion Redis
         self.redis = redis.from_url(REDIS_URL, decode_responses=True)
         self.tracks = self._load_catalog()
         # Phase 2 — Kafka producer
-        # self.kafka_producer = Producer({"bootstrap.servers": KAFKA_BOOTSTRAP})
+        self.kafka_producer = Producer({
+            "bootstrap.servers": KAFKA_BOOTSTRAP,
+            "acks": "all",
+            "enable.idempotence": True,
+            "transactional.id": f"p2p-simulator-{uuid.uuid4()}",
+            "client.id": "p2p_simulator",
+        })
+
+        self.kafka_producer.init_transactions()
 
         # Peers actifs simulés
         self.active_peers = [str(uuid.uuid4()) for _ in range(n_peers)]
@@ -164,9 +173,15 @@ class P2PSimulator:
         while self.running:
             try:
                 # Alterner listening et réseau P2P (80% / 20%)
-                if random.random() < 0.8:
+                
+                if self.mode == "late_events":
+                    event = self._generate_listening_event()
+                    self._publish_event("late_events", event)
+
+                elif random.random() < 0.8:
                     event = self._generate_listening_event()
                     self._publish_event("listening", event)
+
                 else:
                     event = self._generate_p2p_network_event()
                     self._publish_event("p2p_network", event)
@@ -215,7 +230,7 @@ class P2PSimulator:
 
         event = {
             "event_id": str(uuid.uuid4()),
-            "user_id": random.choice(SAMPLE_USERS),
+            "user_id": self.fraud_user if self.mode == "fraud" and random.random() < 0.7 else random.choice(SAMPLE_USERS),
             "track_id": track["id"],
             "source_peer": random.choice(self.active_peers),
             "timestamp": datetime.utcnow().isoformat() + "Z",
@@ -226,15 +241,15 @@ class P2PSimulator:
            "event_source": random.choice(EVENT_SOURCES)
       }
         # Mode fraud (Phase 2) — décommenter
-        # if self.mode == "fraud" and random.random() < 0.3:
-        #     event["duration_ms"] = random.randint(100, 4999)
-        #     event["completed"] = False
+        if self.mode == "fraud" and random.random() < 0.3:
+             event["duration_ms"] = random.randint(100, 4999)
+             event["completed"] = False
 
         # Mode late_events (Phase 2) — décommenter
-        # if self.mode == "late_events" and random.random() < 0.4:
-        #     delay_minutes = random.randint(5, 30)
-        #     ts = datetime.utcnow() - timedelta(minutes=delay_minutes)
-        #     event["timestamp"] = ts.isoformat() + "Z"
+        if self.mode == "late_events" and random.random() < 0.4:
+             delay_minutes = random.randint(5, 30)
+             ts = datetime.utcnow() - timedelta(minutes=delay_minutes)
+             event["timestamp"] = ts.isoformat() + "Z"
 
         return event
 
@@ -284,6 +299,8 @@ class P2PSimulator:
             event["source_peer"] = random.choice(self.active_peers)
             event["target_peer"] = random.choice(self.active_peers)
             event["chunk_size_kb"] = random.randint(64, 1024)
+            failure_prob = 0.6 if self.mode == "fraud" else 0.05
+            event["status"] = "failed" if random.random() < failure_prob else "success"
 
         elif event_type == "cache_hit":
             event["cache_status"] = "hit"
@@ -313,8 +330,41 @@ class P2PSimulator:
         channel = TOPICS[topic_key]
 
         self._publish_to_redis(channel, payload)
-        # Phase 2 — décommenter
-        # self._publish_to_kafka(channel, event.get("user_id", ""), payload)
+
+        key = event.get("user_id") or event.get("peer_id") or event.get("event_id")
+        self._publish_to_kafka(channel, key, payload)
+        # Phase 2 — décommenter_publish_to_kafka
+    def _delivery_report(self, err, msg):
+        if err is not None:
+            logger.error(f"Erreur Kafka delivery: {err}")
+        else:
+            logger.info(
+                f"Événement publié dans Kafka | topic={msg.topic()} partition={msg.partition()} offset={msg.offset()}"
+            )
+
+    def _publish_to_kafka(self, topic: str, key: str, payload: str):
+        try:
+            self.kafka_producer.begin_transaction()
+
+            self.kafka_producer.produce(
+                topic=topic,
+                key=key,
+                value=payload,
+                callback=self._delivery_report,
+            )
+
+            self.kafka_producer.poll(0)
+            self.kafka_producer.commit_transaction()
+
+        except BufferError:
+            self.kafka_producer.poll(0.5)
+
+        except Exception as e:
+            logger.error(f"Erreur Kafka transaction : {e}")
+            try:
+                self.kafka_producer.abort_transaction()
+            except Exception:
+                pass
 
     def _publish_to_redis(self, channel: str, payload: str):
         """
@@ -327,7 +377,7 @@ class P2PSimulator:
             self.redis.publish(channel, payload)
 
             # Liste persistante pour Airflow
-            self.redis.lpush(channel, payload)
+            self.redis.lpush(channel + "_list", payload)
 
             logger.info(
                 f"Événement publié dans Redis | channel={channel}"
@@ -350,6 +400,8 @@ class P2PSimulator:
     def _shutdown(self, signum, frame):
         logger.info(f"Arrêt du simulateur (signal {signum}) — {self.event_count} événements publiés")
         self.running = False
+        if hasattr(self, "kafka_producer"):
+            self.kafka_producer.flush(10)
 
 
 # ─────────────────────────────────────────────────────────────
